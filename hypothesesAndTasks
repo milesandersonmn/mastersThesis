@@ -1,0 +1,22 @@
+Thesis hypotheses:
+
+Linkage disequilibrium of male and female S-locus specificities 
+Non-synonymous mutations in S-RNAse
+Characterize proportion of S-locus genes present in sequence capture data by discovering as many S-locus genes as possible using NGSgenotyp
+Estimate migration using populations along environmental gradients
+Migration rates of S-locus compared to neutral loci
+Self compatibility in the species
+Advantages of selfing in colonization
+
+Tasks for data preparation:
+
+Filter VCF by bed region for SI genes
+Separate VCFs by valleys
+Map distances between sub-population latitudes and longitudes
+Measure FST, pi, Tajima's D along environmental gradients
+Ancestral Recombination Graphs to infer neutrality (Hejase, Dukler, Siepel)
+FILTER LOCI FOR NEUTRALITY USING DESIGN OF CHRISTMAS, BIFFIN, REED, LOWE
+Find potential duplications of S-locus through negative F^IS values, indicates higher heterozygosity than HWE, potentially recombining S-genes/self compat.
+PLINK LD tool to associate F-Box loci with S-RNase
+Identify ancestral alleles conserved from related species using public S-locus data
+Search for monophyly of S-alleles in marginal populations
