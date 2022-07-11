@@ -3,3 +3,12 @@ awk -v OFS="\t" '{$2=$2-150;$3=$3+150; print $0;}' selfincompatibility_genes1.be
 
 ##Filter SI genes from BED file with 150 bp flanking regions
 bcftools view -I -O z Schil_capture_variants_Chr1-12.vcf.gz -R selfincompatibility_genes_150flanking.bed -o Schil_capture_variants_Chr1-12.SIgenes.vcf.gz
+
+##grep accessions from samples in VCF
+zcat Schil_capture_variants_Chr1-12.SIgenes.vcf.gz | grep -o 'LA2981A_[[:alnum:]]*[[:digit:]]*'
+
+##awk command to print region columns to use in extracting all accessions in a given region
+awk 'BEGIN {FS="\t"} ; {if (NR!=1) {print $5}}' selected_pops.txt | sort | uniq
+
+##Extract 
+awk -F '\t' '$5~"Coast" {print $1}' selected_pops.txt
