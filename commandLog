@@ -10,5 +10,13 @@ zcat Schil_capture_variants_Chr1-12.SIgenes.vcf.gz | grep -o 'LA2981A_[[:alnum:]
 ##awk command to print region columns to use in extracting all accessions in a given region
 awk 'BEGIN {FS="\t"} ; {if (NR!=1) {print $5}}' selected_pops.txt | sort | uniq
 
-##Extract 
+##Extract region 2 column, print all accessions with matching locations to use in VCF population subsetting
+
+IFS=$'\n';
+for i in `awk 'BEGIN {FS="\t"} ; {if (NR!=1) {print $5}}' selected_pops.txt | sort | uniq`;do
+region=`echo "$i"`;
+awk -F '\t' '$5~"$region" {print $1}' selected_pops.txt
+done;
+unset IFS
+
 awk -F '\t' '$5~"Coast" {print $1}' selected_pops.txt
