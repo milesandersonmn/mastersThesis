@@ -31,7 +31,26 @@ done
 done < regionFileNames.txt
 
 ##Subset VCF by region
+
 while read line;do
 region=`basename -s _Samples.txt $line`
 bcftools view -O z --samples-file populations/$line VCFs/Schil_capture_variants_Chr1-12.SIgenes.vcf.gz -o VCFs/${region}_Schil_capture_variants_Chr1-12.SIgenes.vcf.gz
 done < populations/sampleFileNames.txt
+
+
+############################################
+Genetic clustering analysis
+############################################
+
+##Filter VCF for neutral SNPs
+
+vcftools --gzvcf Schil_capture_variants_Chr1-12.vcf.gz --thin 100 --remove-indels \
+--maf 0.1 --minDP 10 --max-missing 0.75 --out neutralSNPs --recode-INFO-all --recode
+
+##PLINK LD pruning r² of 0.5
+
+plink --vcf neutralSNPs.recode.vcf --indep-pairwise 50 5 0.5 --double-id --allow-extra-chr
+
+plink --vcf neutralSNPs.recode.vcf --indep-pairwise 50 5 0.5 --double-id --allow-extra-chr \
+--extract plink.prune.in --recode vcf --out pruned.neutralSNPs
+
