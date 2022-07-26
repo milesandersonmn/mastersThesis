@@ -76,6 +76,32 @@ for i in `cat outlier_indices.txt`; do awk -v var=$i '{if ($1 == var) print $2;}
 
 bcftools view --exclude ID==@outlier_IDs.txt ../VCFs/pruned.neutralSNPs.vcf > neutralSNPS.noOutliers.vcf
 
+##Edit population definitions file to segregate by region
 
+for i in `cat Central-Valley1_accessions.txt`; do
+awk -v pop=$i 'BEGIN {FS="\t"} {OFS=FS} {if ($2 == pop) $2="CV1"; print $0;}' populationDefinitionsByRegion.txt > populationDefinitionsByRegion.txt
+done
 
+for i in `cat Central-Valley1_accessions.txt`; do 
+sed -i "s/\(.*\t\)$i/\1CV1/" populationDefinitionsByRegion.txt; 
+done
 
+for i in `cat Central-Valley2_accessions.txt`; do 
+sed -i "s/\(.*\t\)$i/\1CV2/" populationDefinitionsByRegion.txt; 
+done
+
+for i in `cat Central-Valley3_accessions.txt`; do 
+sed -i "s/\(.*\t\)$i/\1CV3/" populationDefinitionsByRegion.txt; 
+done
+
+for i in `cat Central-Valley4_accessions.txt`; do 
+sed -i "s/\(.*\t\)$i/\1CV4/" populationDefinitionsByRegion.txt; 
+done
+
+for i in `cat Coast_accessions.txt`; do 
+sed -i "s/\(.*\t\)$i/\1Coast/" populationDefinitionsByRegion.txt; 
+done
+
+for i in `cat Highland_accessions.txt`; do 
+sed -i "s/\(.*\t\)$i/\1Highland/" populationDefinitionsByRegion.txt; 
+done
