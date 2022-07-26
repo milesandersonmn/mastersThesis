@@ -58,4 +58,24 @@ plink --vcf neutralSNPs.recode.vcf --indep-pairwise 50 5 0.5 --double-id --allow
 
 sed -r 's/(.*)_.*/&\t\1/' allSampleNames.txt > populationDefinitions.txt  
 
+##Find outliers with plot_bayescan.R
+
+results <- plot_bayescan("selectionTesting_fst.txt", FDR=0.05)
+
+write(results$outliers, file = "outliers_indices.txt", ncolumns = 1, sep = "\t")
+
+##Match variant IDs with index number from BayeScan
+
+awk '{ print NR, $1 }' SNPIDs.txt > SNPIDs_indexed.txt
+
+##awk script to print only non-outlier loci
+
+for i in `cat outlier_indices.txt`; do awk -v var=$i '{if ($1 == var) print $2;}' SNPIDs_indexed.txt ; done > outlier_IDs.txt
+
+##Filter to exclude outlier loci from VCF
+
+bcftools view --exclude ID==@outlier_IDs.txt ../VCFs/pruned.neutralSNPs.vcf > neutralSNPS.noOutliers.vcf
+
+
+
 
