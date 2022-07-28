@@ -54,9 +54,21 @@ plink --vcf neutralSNPs.recode.vcf --indep-pairwise 50 5 0.5 --double-id --allow
 plink --vcf neutralSNPs.recode.vcf --indep-pairwise 50 5 0.5 --double-id --allow-extra-chr \
 --extract plink.prune.in --recode vcf --out pruned.neutralSNPs --set-missing-var-ids @:#
 
+##Remove outgroups from
+
+bcftools view -s ^Spenn_LA0716_ERR418107_Spenn_LA0716_ERR418107,\
+S.chiCGN15532_1_ERR418097_S.chiCGN15532_1_ERR418097,\
+S.chiCGN15530_1_ERR418098_S.chiCGN15530_1_ERR418098,\
+Sper_LA1278_ERR418084_Sper_LA1278_ERR418084,\
+Sper_LA1954_ERR418094_Sper_LA1954_ERR418094 pruned.neutralSNPs.vcf > pruned.neutralSNPs.noOutgroup.vcf
+
 ##Define populations for PGDSpider
 
 sed -r 's/(.*)_.*/&\t\1/' allSampleNames.txt > populationDefinitions.txt  
+
+##BayeScan
+
+bayescan_2.1 bayescanNeutralSNPs_noOutgroup.txt -o selectionTesting -threads 40
 
 ##Find outliers with plot_bayescan.R
 
