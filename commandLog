@@ -114,6 +114,11 @@ for i in `cat Highland_accessions.txt`; do
 sed -i "s/\(.*\s\)$i/\1Highland/" populationDefinitionsByRegion.txt; 
 done
 
-## Remove loci with more than 2% missing data (to eliminate potentially uninformative loci from clusterin analysis)
+## Remove loci with more than 2% missing data (to eliminate potentially uninformative loci from clustering analysis)
 
 vcftools --vcf neutralSNPS.noOutliers.vcf --max-missing 0.98 --recode-INFO-all --recode --out neutralSNPs.noOutliers.trimMissing
+
+## Pull sample names from structure file to match to CLUMPP output index
+
+grep -o 'LA\S*' neutralSNPs.noOutliers.trimMissing.stru | uniq
+
