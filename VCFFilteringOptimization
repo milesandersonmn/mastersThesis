@@ -40,7 +40,7 @@ bcftools query -f '%ID\n' ../VCFs/pruned.thinnedSNPs.noOutgroup.rename.filtered.
 
 awk '{ print NR, $1 }' SNPIDs.txt > SNPIDs_indexed.txt
 
-##awk script to print only non-outlier loci
+##awk script to print only outlier loci
 
 for i in `cat outliers_indices.txt`; do awk -v var=$i '{if ($1 == var) print $2;}' SNPIDs_indexed.txt ; done > outlier_IDs.txt
 
