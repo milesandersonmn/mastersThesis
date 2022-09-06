@@ -32,6 +32,10 @@ results <- plot_bayescan("selectionTestingThinnedSNPs_fst.txt", FDR=0.05)
 
 write(results$outliers, file = "outliers_indices.txt", ncolumns = 1, sep = "\t")
 
+##Create list of SNP IDs
+
+bcftools query -f '%ID\n' ../VCFs/pruned.thinnedSNPs.noOutgroup.rename.filtered.vcf > SNPIDs.txt
+
 ##Match variant IDs with index number from BayeScan
 
 awk '{ print NR, $1 }' SNPIDs.txt > SNPIDs_indexed.txt
