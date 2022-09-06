@@ -122,3 +122,24 @@ vcftools --vcf neutralSNPS.noOutliers.vcf --max-missing 0.98 --recode-INFO-all -
 
 grep -o 'LA\S*' neutralSNPs.noOutliers.trimMissing.stru | uniq
 
+## Edit VCF header to account for mislabeling of samples and simplify sample names for visualization
+
+bcftools query -l pruned.thinnedSNPs.noOutgroup.vcf > sampleIDlist.txt
+
+#Edit txt in VIM
+
+%s/\(0_\)\(.*\)/\1\2\t\2/
+%s/\tLA4339_NO1/\tLA4329_NO2/
+5s/\tLA4329_NO2/\tLA4339_NO1/
+
+#Reheader in VCF
+
+bcftools reheader -s sampleIDlist.txt -o pruned.thinnedSNPs.noOutgroup.rename.vcf pruned.thinnedSNPs.noOutgroup.vcf
+
+#Concatenate bad sample IDs to .txt for filtering VCF
+
+bcftools query -l pruned.thinnedSNPs.noOutgroup.rename.vcf | grep 'LA0456\|LA0458\|LA1960_N06\|LA1963_N01' > badSampleIDs.txt
+
+#Subset samples to exclude erroneous individuals
+
+bcftools view -S ^badSampleIDs.txt -o pruned.thinnedSNPs.noOutgroup.rename.filtered.vcf pruned.thinnedSNPs.noOutgroup.rename.vcf
