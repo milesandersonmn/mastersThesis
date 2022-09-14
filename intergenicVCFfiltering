@@ -1,3 +1,8 @@
+##Filter VCF by intergenic bed file
+
+bcftools view -I -O z Schil_capture_variants_Chr1-12.reheader.filtered.vcf.gz \
+-R intergenic.bed -o Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.vcf.gz
+
 ##Filter VCF for neutral SNPs
 
 vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.vcf.gz --thin 200 --remove-indels --maf 0.05 \
@@ -38,22 +43,22 @@ bayescan_2.1 bayescanIntergenicSNPs_noOutgroup.txt -o selectionTesting -threads 
 
 ##Find outliers with plot_bayescan.R
 
-results <- plot_bayescan("selectionTestingThinnedSNPs_fst.txt", FDR=0.05)
+results <- plot_bayescan("selectionTestingIntergenic_fst.txt", FDR=0.05)
 
-write(results$outliers, file = "outliers_indices.txt", ncolumns = 1, sep = "\t")
+write(results$outliers, file = "intergenic_outlier_indices.txt", ncolumns = 1, sep = "\t")
 
 ##Create list of SNP IDs
 
-bcftools query -f '%ID\n' ../VCFs/pruned.thinnedSNPs.noOutgroup.rename.filtered.vcf > SNPIDs.txt
+bcftools query -f '%ID\n' ../VCFs/pruned.intergenicSNPs.noOutgroup.rename.vcf > intergenicSNPIDs.txt
 
 ##Match variant IDs with index number from BayeScan
 
-awk '{ print NR, $1 }' SNPIDs.txt > SNPIDs_indexed.txt
+awk '{ print NR, $1 }' intergenicSNPIDs.txt > intergenicSNPIDs_indexed.txt
 
 ##awk script to print only outlier loci
 
-for i in `cat outliers_indices.txt`; do awk -v var=$i '{if ($1 == var) print $2;}' SNPIDs_indexed.txt ; done > outlier_IDs.txt
+for i in `cat intergenic_outlier_indices.txt`; do awk -v var=$i '{if ($1 == var) print $2;}' intergenicSNPIDs_indexed.txt ; done > intergenicOutlier_IDs.txt
 
 ##Filter to exclude outlier loci from VCF
 
-bcftools view --exclude ID==@outlier_IDs.txt ../VCFs/pruned.thinnedSNPs.noOutgroup.vcf > thinnedSNPS.noOutliers.vcf
+bcftools view --exclude ID==@intergenicOutlier_IDs.txt ../VCFs/pruned.intergenicSNPs.noOutgroup.rename.vcf > intergenicSNPS.noOutgroup.rename.noOutliers.vcf
