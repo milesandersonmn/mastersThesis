@@ -16,13 +16,25 @@ bcftools view -s ^0_Spenn_LA0716_ERR418107,\
 0_Sper_LA1278_ERR418084,\
 0_Sper_LA1954_ERR418094 pruned.intergenicSNPs.vcf > pruned.intergenicSNPs.noOutgroup.vcf
 
+## Edit VCF header to simplify sample names for visualization
+
+bcftools query -l pruned.intergenicSNPs.noOutgroup.vcf > sampleIDlist.txt
+
+#Edit txt in VIM
+
+%s/\(0_\)\(.*\)/\1\2\t\2/
+
+#Reheader in VCF
+
+bcftools reheader -s sampleIDlist.txt -o pruned.intergenicSNPs.noOutgroup.rename.vcf pruned.intergenicSNPs.noOutgroup.vcf
+
 ##Define populations for PGDSpider
 
 sed -r 's/(.*)_.*/&\t\1/' allSampleNames.txt > populationDefinitions.txt  
 
 ##BayeScan (convert PLINK VCF to BayeScan format using PGDSpider)
 
-bayescan_2.1 bayescanThinnedSNPs_noOutgroup.txt -o selectionTesting -threads 40
+bayescan_2.1 bayescanIntergenicSNPs_noOutgroup.txt -o selectionTesting -threads 40
 
 ##Find outliers with plot_bayescan.R
 
