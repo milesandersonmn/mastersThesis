@@ -1,11 +1,37 @@
+##Create VCFs with no indels
+
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz \
+--remove-indels --out Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels --recode-INFO-all --recode
+
+bgzip Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf
+
+bcftools index Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz 
+
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.vcf.gz \
+--remove-indels --out Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.noIndels --recode-INFO-all --recode
+
+bgzip Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.noIndels.recode.vcf
+
+bcftools index Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.noIndels.recode.vcf.gz
+
 ##Create files to measure VCF stats and apply filtering parameters based on results
 
-VCF=../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz
-OUT=intergenic.goodDP
-vcftools --gzvcf $VCF --freq2 --out $OUT --max-alleles 2
-vcftools --gzvcf $VCF --depth --out $OUT
-vcftools --gzvcf $VCF --site-mean-depth --out $OUT
-vcftools --gzvcf $VCF --site-quality --out $OUT
-vcftools --gzvcf $VCF --missing-indv --out $OUT
-vcftools --gzvcf $VCF --missing-site --out $OUT
-vcftools --gzvcf $VCF --het --out $OUT
+VCF=../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz;
+OUT=intergenic.goodDP;
+vcftools --gzvcf $VCF --freq2 --out $OUT --max-alleles 2;
+vcftools --gzvcf $VCF --depth --out $OUT;
+vcftools --gzvcf $VCF --site-mean-depth --out $OUT;
+vcftools --gzvcf $VCF --site-quality --out $OUT;
+vcftools --gzvcf $VCF --missing-indv --out $OUT;
+vcftools --gzvcf $VCF --missing-site --out $OUT;
+vcftools --gzvcf $VCF --het --out $OUT;
+
+VCF=../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.noIndels.recode.vcf.gz;
+OUT=intergenic;
+vcftools --gzvcf $VCF --freq2 --out $OUT --max-alleles 2;
+vcftools --gzvcf $VCF --depth --out $OUT;
+vcftools --gzvcf $VCF --site-mean-depth --out $OUT;
+vcftools --gzvcf $VCF --site-quality --out $OUT;
+vcftools --gzvcf $VCF --missing-indv --out $OUT;
+vcftools --gzvcf $VCF --missing-site --out $OUT;
+vcftools --gzvcf $VCF --het --out $OUT;
