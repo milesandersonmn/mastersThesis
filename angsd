@@ -1,0 +1,8 @@
+####################Print regions file from intergenic bed#############################
+
+awk '{print $1":"$2"-"$3}' intergenic_regions_goodDP.bed > ../angsd/intergenic_regions_file.txt
+
+####################Print population names list##################################
+
+awk '{print $2}' populationDefinitions.txt | sort | uniq > populationNames.txt
+
