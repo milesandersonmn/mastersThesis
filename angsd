@@ -46,3 +46,6 @@ realSFS fst index ../${populationArray[i]}.saf.idx ../${populationArray[j]}.saf.
 -fstout ${populationArray[i]}.${populationArray[j]}
 done;
 done 
+
+####################Test command to get FST per region#############################
+realSFS fst stats 2Didx/LA1958.LA1960.fst.idx -r Scaffold_12628_Chr2:362910-364202
