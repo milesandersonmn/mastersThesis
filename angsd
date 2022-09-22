@@ -35,14 +35,14 @@ mapfile -t populationArray < ../populations/populationNamesCentralValleys.txt
 
 for ((i = 0; i < ${#populationArray[@]}; i++)); do 
 for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
-realSFS ${populationArray[i]}.saf.idx ${populationArray[j]}.saf.idx -fold 1 > 2DSFS/${populationArray[i]}.${populationArray[j]}.ml
+realSFS ${populationArray[i]}.saf.idx ${populationArray[j]}.saf.idx > 2DSFS/${populationArray[i]}.${populationArray[j]}.ml
 done;
 done 
 
 
 for ((i = 0; i < ${#populationArray[@]}; i++)); do 
 for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
-realSFS fst index ../${populationArray[i]}.saf.idx ../${populationArray[j]}.saf.idx -sfs ../2DSFS/${populationArray[i]}.${populationArray[j]}.ml \
+realSFS fst index ../${populationArray[i]}.saf.idx ../${populationArray[j]}.saf.idx -whichFst 1 -sfs ../2DSFS/${populationArray[i]}.${populationArray[j]}.ml \
 -fstout ${populationArray[i]}.${populationArray[j]}
 done;
 done 
