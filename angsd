@@ -24,7 +24,7 @@ realSFS test.saf.idx -maxIter 100 > test.sfs
 
 for i in `cat ../populations/populationNamesCentralValleys.txt`; do
 POPULATION=`echo "$i"`;
-angsd -gl 1 -dosaf 1 -fold 1 -anc ../../S_chilense_reference_rename.fasta -baq 1 -C 50 -minMapQ 30 -minQ 20 -out $POPULATION \
+angsd -gl 1 -dosaf 1 -anc ../../S_chilense_reference_rename.fasta -baq 1 -C 50 -minMapQ 30 -minQ 20 -out $POPULATION \
 -ref ../../S_chilense_reference_rename.fasta \
 -bam ../populations/${POPULATION}_accessions.txt -rf intergenic_regions_file.txt;
 done
