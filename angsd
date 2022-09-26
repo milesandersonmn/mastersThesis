@@ -70,3 +70,50 @@ realSFS fst stats ${j} -r $REGION | \
 grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> ../FST/${PAIR}.region.FST;
 done
 done
+
+#################Concatenate all files with pair identifiers as first column for R visualization###################
+
+###############Tests
+awk '{print FILENAME"\t", $0}' ../FST/LA1958.LA1960.region.FST
+
+for file in `ls LA1958.LA1960.region.FST`; do 
+PAIR=`basename -s .region.FST $file`; \
+POPULATION1=`echo $PAIR | cut -f 1 -d "."`; POPULATION2=`echo $PAIR | cut -f 2 -d "."`; \
+awk -v pops=`echo $POPULATION1"-"$POPULATION2` '{print pops"\t", $0}' $file; 
+done
+
+for file in `ls *.FST`; do
+PAIR=`basename -s .region.FST $file`;
+POPULATION1=`cut -f 1 -d "." $PAIR`;
+POPULATION2=`cut -f 2 -d "." $PAIR`;
+awk '{print ${POPULATION1}"-"${POPULATION2}"\t", $0}' $file';
+done
+
+for file in `ls *FST`; do
+PAIR=`basename -s .region.FST $file`;
+POPULATION1=`echo $PAIR | cut -f 1 -d "."`; 
+POPULATION2=`echo $PAIR | cut -f 2 -d "."`;
+awk -v pops=`echo $POPULATION1"-"$POPULATION2` '{print pops"\t", $0}' $file; 
+done
+
+##########Functional commands
+for file in `ls *FST`; do 
+PAIR=`basename -s .region.FST $file`;
+POPULATION1=`echo $PAIR | cut -f 1 -d "."`;
+POPULATION2=`echo $PAIR | cut -f 2 -d "."`;
+awk -v pops=`echo $POPULATION1"-"$POPULATION2` '{print pops"\t", $0}' $file >> ../fullPairwise.FST;
+done
+
+for file in `ls *FST`; do 
+PAIR=`basename -s .region.FST $file`; 
+POPULATION1=`echo $PAIR | cut -f 1 -d "."`;  
+POPULATION2=`echo $PAIR | cut -f 2 -d "."`; 
+awk -v pair=`echo $POPULATION1"-"$POPULATION2` -v pop1=`echo $POPULATION1` -v pop2=`echo $POPULATION2` \
+'{print pair"\t"pop1"\t"pop2"\t", $0}' $file >> ../popNames.fullPairwise.FST;  done
+
+##############################Add column showing which regions the pairwise comparisons are between##########################
+
+awk 'NR==FNR { id[$1]=$5; next } ($2 in id){ print $6=id[$1], $0}' ../populations/selected_pops.txt popNames.fullPairwise.FST
+
+awk 'BEGIN {FS = "\t"} NR==FNR { id[$1]=$5; next } ($2 in id){ print $0"\t", id[$2]}' ../populations/selected_pops.txt popNames.fullPairwise.FST
+
