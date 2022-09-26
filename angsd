@@ -113,7 +113,15 @@ awk -v pair=`echo $POPULATION1"-"$POPULATION2` -v pop1=`echo $POPULATION1` -v po
 
 ##############################Add column showing which regions the pairwise comparisons are between##########################
 
+######Tests
 awk 'NR==FNR { id[$1]=$5; next } ($2 in id){ print $6=id[$1], $0}' ../populations/selected_pops.txt popNames.fullPairwise.FST
 
 awk 'BEGIN {FS = "\t"} NR==FNR { id[$1]=$5; next } ($2 in id){ print $0"\t", id[$2]}' ../populations/selected_pops.txt popNames.fullPairwise.FST
+
+awk 'BEGIN {FS = "\t"} NR==FNR { id[$1]=$5; next } {if(id[$2]==id[$3]) {print $0"\t", id[$2]"\t"id[$3]"\t","Within group"}}' selected_pops_rename_UNIX.txt popNames.fullPairwise.FST
+
+######Functional
+
+awk 'BEGIN {FS = "\t"} NR==FNR { id[$1]=$5; next } {if(id[$2]==id[$3]) {print $0"\t", id[$2]"\t"id[$3]"\t","Within group"} \
+else {print $0"\t", id[$2]"\t"id[$3]"\t",id[$2]"-"id[$3]}}' selected_pops_rename_UNIX.txt popNames.fullPairwise.FST > pairwisePopulations.FST
 
