@@ -49,3 +49,24 @@ done
 
 ####################Test command to get FST per region#############################
 realSFS fst stats 2Didx/LA1958.LA1960.fst.idx -r Scaffold_12628_Chr2:362910-364202
+
+realSFS fst stats 2Didx/LA1958.LA1960.fst.idx -r Scaffold_12628_Chr2:362910-364202 | \
+grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*"
+
+for i in `cat intergenic_regions_file.txt`; do
+REGION=`echo "$i"`;
+realSFS fst stats 2Didx/LA1958.LA1960.fst.idx -r $REGION | \
+grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> test.FSTs;
+done
+
+##################Run FST per region for all pairwise combinations####################
+cd 2Didx
+
+for j in `ls *.idx`; do
+PAIR=`basename -s .fst.idx $j`;
+for i in `cat ../intergenic_regions_file.txt`; do
+REGION=`echo "$i"`;
+realSFS fst stats ${j} -r $REGION | \
+grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> ../FST/${PAIR}.region.FST;
+done
+done
