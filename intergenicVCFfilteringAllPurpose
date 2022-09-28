@@ -36,3 +36,9 @@ Sper_LA1954_ERR418094 intergenicSNPs.noMAF.recode.vcf > intergenicSNPs.noMAF.noO
 
 vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz --remove-indels --minQ 30 \
 --maf 0.01 --minDP 10 --min-meanDP 10 --max-missing 0.8 --out intergenicSNPs.noSingletons --recode-INFO-all --recode
+
+bcftools view -s ^Spenn_LA0716_ERR418107,\
+S.chiCGN15532_1_ERR418097,\
+S.chiCGN15530_1_ERR418098,\
+Sper_LA1278_ERR418084,\
+Sper_LA1954_ERR418094 intergenicSNPs.noSingletons.recode.vcf > intergenicSNPs.noSingletons.noOutgroup.vcf
