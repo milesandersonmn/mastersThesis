@@ -43,7 +43,7 @@ vcftools --gzvcf $VCF --het --out $OUT;
 ##No MAF
 
 vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz \
---remove-indels --minQ 30 --minDP 10 --max-missing 0.8 --out intergenicSNPs.noMAF --recode-INFO-all --recode
+--remove-indels --minQ 30 --minDP 10 --max-missing 0.98 --out intergenicSNPs.noMAF --recode-INFO-all --recode
 
 
 bcftools view -s ^Spenn_LA0716_ERR418107,\
@@ -54,9 +54,8 @@ Sper_LA1954_ERR418094 intergenicSNPs.noMAF.recode.vcf > intergenicSNPs.noMAF.noO
 
 ##No singletons
 
-vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz \
---remove-indels --minQ 30 \
---mac 2 --minDP 10 --max-missing 0.8 --out intergenicSNPs.noSingletons --recode-INFO-all --recode
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz --remove-indels \
+--minQ 30 --mac 2 --minDP 10 --max-missing 0.98 --out intergenicSNPs.noSingletons --recode-INFO-all --recode
 
 bcftools view -s ^Spenn_LA0716_ERR418107,\
 S.chiCGN15532_1_ERR418097,\
