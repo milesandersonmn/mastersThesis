@@ -1,3 +1,15 @@
+##Filter VCF by intergenic bed file
+
+bcftools view -I -O z Schil_capture_variants_Chr1-12.reheader.filtered.vcf.gz \
+-R ../bedFiles/intergenic_regions.bed -o Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.vcf.gz
+
+##Filter VCF by high depth intergenic regions
+
+awk '$6=="yes"' intergenic_regions.bed > intergenic_regions_goodDP.bed
+
+bcftools view -I -O z Schil_capture_variants_Chr1-12.reheader.filtered.vcf.gz \
+-R ../bedFiles/intergenic_regions_goodDP.bed -o Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz
+
 #######################Decompose complex variants################################
 
 zcat Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz | \
