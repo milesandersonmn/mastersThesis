@@ -1,15 +1,22 @@
+#######################Decompose complex variants################################
+
+zcat Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz | \
+vcfallelicprimitives > Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.vcf 
+
+bgzip Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.vcf
+
 #######################Create VCFs with no indels###############################
 
-vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz \
---remove-indels --out Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels --recode-INFO-all --recode
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.vcf.gz \
+--remove-indels --out Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels --recode-INFO-all --recode
 
-bgzip Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf
+bgzip Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf
 
-bcftools index Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz 
+bcftools index Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz
 
 #######################Create files to measure VCF stats and apply filtering parameters based on results###########################
 
-VCF=../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz;
+VCF=../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz;
 OUT=intergenic.goodDP;
 vcftools --gzvcf $VCF --freq2 --out $OUT --max-alleles 2;
 vcftools --gzvcf $VCF --depth --out $OUT;
@@ -23,8 +30,9 @@ vcftools --gzvcf $VCF --het --out $OUT;
 
 ##No MAF
 
-vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz --remove-indels --minQ 30 \
---minDP 10 --min-meanDP 10 --max-missing 0.8 --out intergenicSNPs.noMAF --recode-INFO-all --recode
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz \
+--remove-indels --minQ 30 --minDP 10 --max-missing 0.8 --out intergenicSNPs.noMAF --recode-INFO-all --recode
+
 
 bcftools view -s ^Spenn_LA0716_ERR418107,\
 S.chiCGN15532_1_ERR418097,\
@@ -34,8 +42,9 @@ Sper_LA1954_ERR418094 intergenicSNPs.noMAF.recode.vcf > intergenicSNPs.noMAF.noO
 
 ##No singletons
 
-vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.noIndels.recode.vcf.gz --remove-indels --minQ 30 \
---maf 0.01 --minDP 10 --min-meanDP 10 --max-missing 0.8 --out intergenicSNPs.noSingletons --recode-INFO-all --recode
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz \
+--remove-indels --minQ 30 \
+--mac 2 --minDP 10 --max-missing 0.8 --out intergenicSNPs.noSingletons --recode-INFO-all --recode
 
 bcftools view -s ^Spenn_LA0716_ERR418107,\
 S.chiCGN15532_1_ERR418097,\
