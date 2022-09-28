@@ -1,36 +1,11 @@
-##Filter VCF by intergenic bed file
+##PLINK LD pruning r² of 0.5 for VCFs generated from all purpose filtering
 
-bcftools view -I -O z Schil_capture_variants_Chr1-12.reheader.filtered.vcf.gz \
--R ../bedFiles/intergenic_regions.bed -o Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.vcf.gz
-
-##Filter VCF by high depth intergenic regions
-
-awk '$6=="yes"' intergenic_regions.bed > intergenic_regions_goodDP.bed
-
-bcftools view -I -O z Schil_capture_variants_Chr1-12.reheader.filtered.vcf.gz \
--R ../bedFiles/intergenic_regions_goodDP.bed -o Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.vcf.gz
-
-##Filter VCF for neutral SNPs
-
-vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.vcf.gz --thin 200 --remove-indels --maf 0.05 \
---minDP 10 --max-missing 0.9 --out intergenicSNPs --recode-INFO-all --recode
-
-##PLINK LD pruning r² of 0.5
-
-plink --vcf intergenicSNPs.recode.vcf --indep-pairwise 50 5 0.5 --const-fid --allow-extra-chr \
---recode vcf --out pruned.intergenicSNPs --set-missing-var-ids @:#
-
-##Remove outgroups from
-
-bcftools view -s ^0_Spenn_LA0716_ERR418107,\
-0_S.chiCGN15532_1_ERR418097,\
-0_S.chiCGN15530_1_ERR418098,\
-0_Sper_LA1278_ERR418084,\
-0_Sper_LA1954_ERR418094 pruned.intergenicSNPs.vcf > pruned.intergenicSNPs.noOutgroup.vcf
+plink --vcf intergenicSNPs.noSingletons.noOutgroup.vcf --indep-pairwise 50 5 0.5 --const-fid --allow-extra-chr \
+--recode vcf --out pruned.intergenicSNPs.noSingletons.noOutgroup --set-missing-var-ids @:#
 
 ## Edit VCF header to simplify sample names for visualization
 
-bcftools query -l pruned.intergenicSNPs.noOutgroup.vcf > sampleIDlist.txt
+bcftools query -l pruned.intergenicSNPs.noSingletons.noOutgroup.vcf > sampleIDlist.txt
 
 #Edit txt in VIM
 
@@ -38,7 +13,7 @@ bcftools query -l pruned.intergenicSNPs.noOutgroup.vcf > sampleIDlist.txt
 
 #Reheader in VCF
 
-bcftools reheader -s sampleIDlist.txt -o pruned.intergenicSNPs.noOutgroup.rename.vcf pruned.intergenicSNPs.noOutgroup.vcf
+bcftools reheader -s sampleIDlist.txt -o pruned.intergenicSNPs.noSingletons.noOutgroup.rename.vcf pruned.intergenicSNPs.noSingletons.noOutgroup.vcf
 
 ##Define populations for PGDSpider
 
@@ -56,7 +31,7 @@ write(results$outliers, file = "intergenic_outlier_indices.txt", ncolumns = 1, s
 
 ##Create list of SNP IDs
 
-bcftools query -f '%ID\n' ../VCFs/pruned.intergenicSNPs.noOutgroup.rename.vcf > intergenicSNPIDs.txt
+bcftools query -f '%ID\n' ../VCFs/pruned.intergenicSNPs.noSingletons.noOutgroup.rename.vcf > intergenicSNPIDs.txt
 
 ##Match variant IDs with index number from BayeScan
 
