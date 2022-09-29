@@ -1,0 +1,13 @@
+####################Extract hits from assembly contigs from reference SI proteins#############################
+
+captus_assembly extract -a . \
+--fastas ../captus/01_assembly/ \
+-n ../captus/self_incompatibility_genes.faa
+
+#######Filter captus hits with lower than 0.85 score
+
+awk 'BEGIN{OFS="\t";}{if ($6 >= 0.85)print $1,$4,$5;}' assembly_hit_contigs.gff > ../../../../bedFiles/captusSIgenes.bed
+
+#######Add 150 bp flanking region to bed regions to capture sequences picked up outside probe sequences##########
+
+awk -v OFS="\t" '{$2=$2-150;$3=$3+150; print $0;}' captusSIgenes.bed > captusSIgenes_150flanking.bed
