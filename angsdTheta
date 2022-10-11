@@ -1,1 +1,21 @@
+#########################Generate SFS for each population to get Thetas##############################
 
+for i in `ls LA*.idx`; do
+POPULATION=`basename -s .saf.idx $i`;
+realSFS $i -maxIter 100 > SFS/$POPULATION.sfs
+done
+
+#######################Calculate Thetas per site############################
+
+for i in `ls LA*.idx`; do
+POPULATION=`basename -s .saf.idx $i`;
+realSFS saf2theta $i -outname Thetas/$POPULATION -sfs SFS/$POPULATION.sfs
+done
+
+######################Log'd Theta estimators per site######################
+cd Thetas
+
+for i in `ls LA*.idx`; do
+POPULATION=`basename -s .thetas.idx $i`;
+thetaStat print $i > $POPULATION.logThetas
+done
