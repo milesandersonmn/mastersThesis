@@ -134,20 +134,27 @@ POPULATION2=`echo $PAIR | cut -f 2 -d "."`;
 awk -v pops=`echo $POPULATION1"-"$POPULATION2` '{print pops"\t", $0}' $file; 
 done
 
-##########Functional commands
-for file in `ls *FST`; do 
-PAIR=`basename -s .region.FST $file`;
-POPULATION1=`echo $PAIR | cut -f 1 -d "."`;
-POPULATION2=`echo $PAIR | cut -f 2 -d "."`;
-awk -v pops=`echo $POPULATION1"-"$POPULATION2` '{print pops"\t", $0}' $file >> ../fullPairwise.FST;
-done
+##########Functional commands intergenic regions
+
+####intergenic regions
 
 for file in `ls *FST`; do 
-PAIR=`basename -s .region.FST $file`; 
+PAIR=`basename -s .region.intergenic.FST $file`; 
 POPULATION1=`echo $PAIR | cut -f 1 -d "."`;  
 POPULATION2=`echo $PAIR | cut -f 2 -d "."`; 
 awk -v pair=`echo $POPULATION1"-"$POPULATION2` -v pop1=`echo $POPULATION1` -v pop2=`echo $POPULATION2` \
-'{print pair"\t"pop1"\t"pop2"\t", $0}' $file >> ../popNames.fullPairwise.FST;  done
+'{print pair"\t"pop1"\t"pop2"\t", $0}' $file >> ../popNames.fullPairwise.intergenic.FST;
+done
+
+####SI regions
+
+for file in `ls *FST`; do 
+PAIR=`basename -s .region.SI.FST $file`; 
+POPULATION1=`echo $PAIR | cut -f 1 -d "."`;  
+POPULATION2=`echo $PAIR | cut -f 2 -d "."`; 
+awk -v pair=`echo $POPULATION1"-"$POPULATION2` -v pop1=`echo $POPULATION1` -v pop2=`echo $POPULATION2` \
+'{print pair"\t"pop1"\t"pop2"\t", $0}' $file >> ../popNames.fullPairwise.SI.FST;
+done
 
 ##############################Add column showing which regions the pairwise comparisons are between##########################
 
@@ -160,10 +167,14 @@ awk 'BEGIN {FS = "\t"} NR==FNR { id[$1]=$5; next } {if(id[$2]==id[$3]) {print $0
 
 ######Functional
 
-awk 'BEGIN {FS = "\t"} NR==FNR { id[$1]=$5; next } {if(id[$2]==id[$3]) {print $0"\t", id[$2]"\t"id[$3]"\t","Within group"} \
-else {print $0"\t", id[$2]"\t"id[$3]"\t",id[$2]"-"id[$3]}}' selected_pops_rename_UNIX.txt popNames.fullPairwise.FST > pairwisePopulations.FST
+####intergenic regions
 
 awk 'BEGIN {FS=OFS ="\t"} NR==FNR { id[$1]=$5; next } {if(id[$2]==id[$3]) {print $0, id[$2],id[$3],"Within group"} \
 }{if(id[$2] > id[$3]) {print $0, id[$2],id[$3],id[$3]"-"id[$2]}}{if(id[$2] < id[$3]) {print $0,id[$2],id[$3],id[$2]"-"id[$3]}}' \
-selected_pops_rename_UNIX.txt popNames.fullPairwise.FST > pairwisePopulations.FST
+selected_pops_rename_UNIX.txt popNames.fullPairwise.intergenic.FST > pairwisePopulations.intergenic.FST
 
+####SI regions
+
+awk 'BEGIN {FS=OFS ="\t"} NR==FNR { id[$1]=$5; next } {if(id[$2]==id[$3]) {print $0, id[$2],id[$3],"Within group"} \
+}{if(id[$2] > id[$3]) {print $0, id[$2],id[$3],id[$3]"-"id[$2]}}{if(id[$2] < id[$3]) {print $0,id[$2],id[$3],id[$2]"-"id[$3]}}' \
+selected_pops_rename_UNIX.txt popNames.fullPairwise.SI.FST > pairwisePopulations.SI.FST
