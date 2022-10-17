@@ -5,17 +5,42 @@ POPULATION=`basename -s .saf.idx $i`;
 realSFS $i -maxIter 100 > SFS/$POPULATION.sfs
 done
 
-#######################Calculate Thetas per site############################
+#########################Calculate Thetas per site############################
 
 for i in `ls LA*.idx`; do
 POPULATION=`basename -s .saf.idx $i`;
 realSFS saf2theta $i -outname Thetas/$POPULATION -sfs SFS/$POPULATION.sfs
 done
 
-######################Log'd Theta estimators per site######################
+########################Log'd Theta estimators per site######################
 cd Thetas
 
 for i in `ls LA*.idx`; do
 POPULATION=`basename -s .thetas.idx $i`;
 thetaStat print $i > $POPULATION.logThetas
+done
+
+########################Subset log'd Theta estimators by BED coordinates for SI and intergenic regions##############################
+
+##Test command (pipeline grep to awk; searching for chromosome name with grep and pipelining grep output to awk drastically reduces awk run time)
+
+while read Chr pos1 pos2; do grep $Chr LA1958.logThetas | awk -v Chr="$Chr" -v pos1="$pos1" -v pos2="$pos2" 'BEGIN {FS = "\t"} \
+{if ($1==Chr && $2>=pos1 && $2<=pos2) {print $0}}'; done <../../bedFiles/captusSIgenes.bed > ../SIThetas/test.SI.logThetas
+
+##For loop using all population logTheta files
+
+for file in `ls *.logThetas`; do
+POPULATION=`basename -s .logThetas $file`;
+while read Chr pos1 pos2;
+do grep $Chr $file | awk -v Chr="$Chr" -v pos1="$pos1" -v pos2="$pos2" 'BEGIN {FS = "\t"} \
+{if ($1==Chr && $2>=pos1 && $2<=pos2) {print $0}}';
+done <../../bedFiles/intergenic_regions_goodDP.bed > ../intergenicThetas/${POPULATION}.intergenic.logThetas
+done
+
+for file in `ls *.logThetas`; do
+POPULATION=`basename -s .logThetas $file`;
+while read Chr pos1 pos2;
+do grep $Chr $file | awk -v Chr="$Chr" -v pos1="$pos1" -v pos2="$pos2" 'BEGIN {FS = "\t"} \
+{if ($1==Chr && $2>=pos1 && $2<=pos2) {print $0}}';
+done <../../bedFiles/captusSIgenes.bed > ../SIThetas/${POPULATION}.SI.logThetas
 done
