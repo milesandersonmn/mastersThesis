@@ -49,3 +49,13 @@ do grep $Chr $file | awk -v Chr="$Chr" -v pos1="$pos1" -v pos2="$pos2" 'BEGIN {F
 {if ($1==Chr && $2>=pos1 && $2<=pos2) {print $0}}';
 done <../../bedFiles/captusSIgenes.bed > ../SIThetas/${POPULATION}.SI.logThetas &
 done
+
+###################Add header to log'd theta files#################################
+
+##Test
+
+cat ../thetaHeader.txt LA1958.SI.logThetas > LA1958.header.SI.logThetas
+
+##For loop
+
+#SI regions
