@@ -1,0 +1,58 @@
+##################Edit G-PhoCS Makefile line 17 to compile with GCC 11.2.1#################
+
+CFLAGS+= -fstack-protector-all -Wall -O3  -std=c99 -fcommon
+
+##################Create model file using Popgen Pipeline Platform to run G-PhoCS###################
+
+##Create population files with sample names per population
+
+for pop in `cat populationNames.txt`; do
+awk -v pop="$pop" '{if ($2==pop){print $1}}' ../populations/populationDefinitions.txt > $pop.txt
+done
+
+##For loop to print command used to make model file (too many populations to manually type)
+
+for pop in `ls LA*`; do
+NAME=`basename -s .txt $pop`
+echo "--pop-ind-file $NAME $pop \\"
+done
+
+##Model file command
+
+model_creator.py --model model --model-pop-file model populationNames.txt \
+--pop-ind-file LA1958 LA1958.txt \
+--pop-ind-file LA1960 LA1960.txt \
+--pop-ind-file LA1963 LA1963.txt \
+--pop-ind-file LA1965 LA1965.txt \
+--pop-ind-file LA1967 LA1967.txt \
+--pop-ind-file LA1968 LA1968.txt \
+--pop-ind-file LA2751 LA2751.txt \
+--pop-ind-file LA2753 LA2753.txt \
+--pop-ind-file LA2754 LA2754.txt \
+--pop-ind-file LA2755 LA2755.txt \
+--pop-ind-file LA2965 LA2965.txt \
+--pop-ind-file LA2981A LA2981A.txt \
+--pop-ind-file LA3111 LA3111.txt \
+--pop-ind-file LA3112 LA3112.txt \
+--pop-ind-file LA3114 LA3114.txt \
+--pop-ind-file LA3115 LA3115.txt
+
+###################Generate G-PhoCS input file from VCF#########################
+
+##Subset VCF to exclude outgroups and Coastal/Highland samples
+
+bcftools view -O z ../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz \
+-S ^excludedSamples.txt -o CentralValleySamples.intergenic.vcf.gz 
+
+##Recode missing data fro '.' to './.' to avoid tuple index error
+
+plink --vcf CentralValleySamples.intergenic.vcf.gz --keep-allele-order --recode vcf-iid \
+--out CentralValleySamples.intergenic.recoded --aec --const-fid
+
+##Generate input
+
+conda activate py-popgen 
+
+vcf_to_gphocs.py --vcf CentralValleySamples.intergenic.recoded.vcf --model-file out.model --modelname model --out input \
+--bed-file reformattedIntergenic.bed --reference ../../S_chilense_reference_rename.fasta
+
