@@ -56,3 +56,16 @@ conda activate py-popgen
 vcf_to_gphocs.py --vcf CentralValleySamples.intergenic.recoded.vcf --model-file out.model --modelname model --out input \
 --bed-file reformattedIntergenic.bed --reference ../../S_chilense_reference_rename.fasta
 
+##Print control file arguments
+
+#Current-pops
+
+for popFile in `ls LA*.txt`; do
+popName=`basename -s .txt $popFile`
+mapfile -t a < $popFile
+sampleNames=`echo ${a[@]}`
+printf "\n\tPOP-START\n\t\tname\t${popName}\n\t\tsamples\t${sampleNames}\n\tPOP-END"
+done > current-pops.txt
+
+
+
