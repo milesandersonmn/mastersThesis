@@ -1,0 +1,68 @@
+##################Filter VCF for 4 gamete test#########################
+
+##Filter outgroup from VCF
+
+bcftools view -s ^Spenn_LA0716_ERR418107,\
+S.chiCGN15532_1_ERR418097,\
+S.chiCGN15530_1_ERR418098,\
+Sper_LA1278_ERR418084,\
+Sper_LA1954_ERR418094 \
+../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz > intergenic.noOutgroup.vcf
+
+##Reorder samples in VCF grouped by population (genetic cluster)
+
+cat Central-Valley1_Samples.txt Central-Valley2_Samples.txt Central-Valley3_Samples.txt Central-Valley4_Samples.txt \
+Coast_Samples.txt Highland_Samples.txt > sampleOrder.txt
+
+bcftools view -S sampleOrder.txt intergenic.noOutgroup.vcf.gz > intergenic.noOutgroup.reordered.vcf
+
+##Filter 4 gamete testing
+
+##Recode missing loci from '.' to './.'
+
+plink --vcf intergenic.noOutgroup.reordered.vcf.gz --keep-allele-order --recode vcf-iid \
+--out intergenic.noOutgroup.reordered.recoded --aec --const-fid
+
+##4 Gamete testing with conservative approach for unphased heterozygous variants (-r 2)
+
+./FGTpartitioner.py -v ../../intergenic.noOutgroup.reordered.recoded.vcf.gz -r 2
+
+##Convert GATK-style regions (1-based) to BED (0-based)
+
+cat FGTpartition/FGTpartitioner/regions.out | sed 's/:\|-/\t/gi' | awk '{print $1"\t"$2-1"\t"$3}' > 4GameteRegions.bed
+
+##Subset BED for regions greater than 50 BP and less than 500 BP (larger regions contain too many uncalled bases)
+
+awk '{if ($3-$2 < 500 && $3-$2 > 50) print  $0}' 4GameteRegions.bed > 4GameteSmallRegions.bed
+
+##Randomly sample 5 loci from each chromosome to attain a reasonably sized data set
+
+for i in `awk '{print $1}' 4GameteSmallRegions.bed | sort | uniq`; do grep $i 4GameteSmallRegions.bed | shuf -n 5 ; done > subset4GameteSmallRegions.bed
+
+##Subset VCF for output regions passing 4 gamete filter
+
+bcftools view -O z -o intergenic.noOutgroup.reordered.recoded.4Gamete.vcf.gz -R 4GameteRegions.bed intergenic.noOutgroup.reordered.recoded.vcf.gz
+
+##################Create input for IMa on 4 Gamete filtered loci VCFs###########################
+
+##For loop to print command used to make model file (too many populations to manually type)
+
+for pop in `ls *Samples.txt`; do
+NAME=`basename -s _Samples.txt $pop`
+echo "--pop-ind-file $NAME $pop \\"
+done
+
+##Model creator command
+
+model_creator.py --model clusters --model-pop-file clusters clusterNames.txt \
+--pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
+--pop-ind-file Central-Valley2 Central-Valley2_Samples.txt \
+--pop-ind-file Central-Valley3 Central-Valley3_Samples.txt \
+--pop-ind-file Central-Valley4 Central-Valley4_Samples.txt \
+--pop-ind-file Coast Coast_Samples.txt \
+--pop-ind-file Highland Highland_Samples.txt
+
+##PPP command
+
+vcf_to_ima.py --vcf intergenic.noOutgroup.reordered.recoded.4Gamete.vcf.gz --bed 4GameteRegions.bed \
+--model-file out.model --reference-fasta ../../S_chilense_reference_rename.fasta --out inputIMa
