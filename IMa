@@ -31,17 +31,13 @@ plink --vcf intergenic.noOutgroup.reordered.vcf.gz --keep-allele-order --recode 
 
 cat FGTpartition/FGTpartitioner/regions.out | sed 's/:\|-/\t/gi' | awk '{print $1"\t"$2-1"\t"$3}' > 4GameteRegions.bed
 
-##Subset BED for regions greater than 50 BP and less than 500 BP (larger regions contain too many uncalled bases)
+##Subset BED for regions greater than 3000 BP and less than 5000 BP (larger regions contain too many uncalled bases and less variants on average)
 
 awk '{if ($3-$2 < 500 && $3-$2 > 50) print  $0}' 4GameteRegions.bed > 4GameteSmallRegions.bed
 
 ##Randomly sample 5 loci from each chromosome to attain a reasonably sized data set
 
 for i in `awk '{print $1}' 4GameteSmallRegions.bed | sort | uniq`; do grep $i 4GameteSmallRegions.bed | shuf -n 5 ; done > subset4GameteSmallRegions.bed
-
-##Subset VCF for output regions passing 4 gamete filter
-
-bcftools view -O z -o intergenic.noOutgroup.reordered.recoded.4Gamete.vcf.gz -R 4GameteRegions.bed intergenic.noOutgroup.reordered.recoded.vcf.gz
 
 ##################Create input for IMa on 4 Gamete filtered loci VCFs###########################
 
@@ -64,5 +60,5 @@ model_creator.py --model clusters --model-pop-file clusters clusterNames.txt \
 
 ##PPP command
 
-vcf_to_ima.py --vcf intergenic.noOutgroup.reordered.recoded.4Gamete.vcf.gz --bed 4GameteRegions.bed \
+vcf_to_ima.py --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --bed subset4GameteSmallRegions.bed \
 --model-file out.model --reference-fasta ../../S_chilense_reference_rename.fasta --out inputIMa
