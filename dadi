@@ -1,0 +1,31 @@
+####################Create model file for pairwise dadi runs between clusters############################
+
+##Test model for clusters in Central Valley 1 and Central Valley 2/3
+
+model_creator.py --model CV1xCV2and3 --model-pop-file clusters clusterNamesCVs123.txt \
+--pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
+--pop-ind-file Central-Valley2and3 Central-Valley2and3_Samples.txt
+
+##dadi test command for 1 pairwise comparison
+
+vcf_to_dadi.py --vcf ../IMa/intergenic.noOutgroup.reordered.recoded.vcf.gz --bed ../IMa/intergenic_region_goodDP_ChrOnly.bed \
+--model-file out.model --modelname CV1xCV2and3 --out CV1xCV2and3.dadi
+
+##Python commands
+
+#Population ids
+
+pop_ids = ['Central-Valley1' , 'Central-Valley2and3']
+
+#Number of haploid samples per population
+
+ns = [58 , 178]
+
+#Folded spectrum
+
+folded_fs = dadi.Spectrum.from_data_dict(dd, pop_ids, ns, polarized = False)
+
+#Grid points
+
+pts_l = [max(ns)+100, max(ns)+110, max(ns)+120]
+
