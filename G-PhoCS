@@ -19,35 +19,35 @@ done
 
 ##Model file command
 
-model_creator.py --model model --model-pop-file model populationNames.txt \
---pop-ind-file LA1958 LA1958.txt \
---pop-ind-file LA1960 LA1960.txt \
---pop-ind-file LA1963 LA1963.txt \
---pop-ind-file LA1965 LA1965.txt \
---pop-ind-file LA1967 LA1967.txt \
---pop-ind-file LA1968 LA1968.txt \
---pop-ind-file LA2751 LA2751.txt \
---pop-ind-file LA2753 LA2753.txt \
---pop-ind-file LA2754 LA2754.txt \
---pop-ind-file LA2755 LA2755.txt \
---pop-ind-file LA2965 LA2965.txt \
---pop-ind-file LA2981A LA2981A.txt \
---pop-ind-file LA3111 LA3111.txt \
---pop-ind-file LA3112 LA3112.txt \
---pop-ind-file LA3114 LA3114.txt \
---pop-ind-file LA3115 LA3115.txt
+model_creator.py --model clusters --model-pop-file clusters clusterNames.txt \
+--pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
+--pop-ind-file Central-Valley2and3 Central-Valley2and3_Samples.txt \
+--pop-ind-file Central-Valley4 Central-Valley4_Samples.txt \
+--pop-ind-file Coast Coast_Samples.txt \
+--pop-ind-file Highland Highland_Samples.txt
 
 ###################Generate G-PhoCS input file from VCF#########################
 
-##Subset VCF to exclude outgroups and Coastal/Highland samples
+##Filter outgroup from VCF
 
-bcftools view -O z ../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz \
--S ^excludedSamples.txt -o CentralValleySamples.intergenic.vcf.gz 
+bcftools view -s ^Spenn_LA0716_ERR418107,\
+S.chiCGN15532_1_ERR418097,\
+S.chiCGN15530_1_ERR418098,\
+Sper_LA1278_ERR418084,\
+Sper_LA1954_ERR418094 \
+../VCFs/Schil_capture_variants_Chr1-12.reheader.filtered.intergenic.goodDP.decomposedVariants.noIndels.recode.vcf.gz > intergenic.noOutgroup.vcf
 
-##Recode missing data fro '.' to './.' to avoid tuple index error
+##Reorder samples in VCF grouped by population (genetic cluster)
 
-plink --vcf CentralValleySamples.intergenic.vcf.gz --keep-allele-order --recode vcf-iid \
---out CentralValleySamples.intergenic.recoded --aec --const-fid
+cat Central-Valley1_Samples.txt Central-Valley2_Samples.txt Central-Valley3_Samples.txt Central-Valley4_Samples.txt \
+Coast_Samples.txt Highland_Samples.txt > sampleOrder.txt
+
+bcftools view -S sampleOrder.txt intergenic.noOutgroup.vcf.gz > intergenic.noOutgroup.reordered.vcf
+
+##Recode missing loci from '.' to './.'
+
+plink --vcf intergenic.noOutgroup.reordered.vcf.gz --keep-allele-order --recode vcf-iid \
+--out intergenic.noOutgroup.reordered.recoded --aec --const-fid
 
 ##Generate input
 
@@ -56,16 +56,8 @@ conda activate py-popgen
 vcf_to_gphocs.py --vcf CentralValleySamples.intergenic.recoded.vcf --model-file out.model --modelname model --out input \
 --bed-file reformattedIntergenic.bed --reference ../../S_chilense_reference_rename.fasta
 
-##Print control file arguments
+##Newick format tree for control file arguments
 
-#Current-pops
-
-for popFile in `ls LA*.txt`; do
-popName=`basename -s .txt $popFile`
-mapfile -t a < $popFile
-sampleNames=`echo ${a[@]}`
-printf "\n\tPOP-START\n\t\tname\t${popName}\n\t\tsamples\t${sampleNames}\n\tPOP-END"
-done > current-pops.txt
-
+((((Coast,Highland)ANC4,Central-Valley4)ANC2and3,Central-Valley2and3)ANC1,Central-Valley1)ROOT;
 
 
