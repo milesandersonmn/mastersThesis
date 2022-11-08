@@ -16,11 +16,46 @@ dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-i
 ##Infer DM
 
 dadi-cli InferDM --fs Central-Valley1xCentral-Valley2and3.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
---ubounds 100 100 1 10 --output Central-Valley1xCentral-Valley2and3.split_mig.demo.params --optimizations 20 --nomisid --cpus 20
+--ubounds 50 50 1 5 --output Central-Valley1xCentral-Valley2and3.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
 
+##Best fit
 
+dadi-cli BestFit --input-prefix Central-Valley1xCentral-Valley2and3.split_mig.demo.params.InferDM --lbounds 1e-3 1e-3 0 0 --ubounds 100 100 1 10
 
+##Create pairwise population automation
 
+#Population name array
+populationArray=( $(awk '{print $2}' popfile.txt | sort | uniq) )
+
+#For loop to generate pairwise FS
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfile.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfile.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfile.txt --pop-ids $POP1 $POP2 \
+--projections $N1HapCount $N2HapCount --output $PAIR.folded.fs
+done
+done
+
+#For loop infer DM
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfile.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfile.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfile.txt --pop-ids $POP1 $POP2 \
+--projections $N1HapCount $N2HapCount --output $PAIR.folded.fs
+done
+done
 
 model_creator.py --model CV1xCV2and3 --model-pop-file clusters clusterNamesCVs123.txt \
 --pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
