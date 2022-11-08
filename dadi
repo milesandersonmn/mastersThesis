@@ -1,6 +1,26 @@
 ####################Create model file for pairwise dadi runs between clusters############################
 
+##Create popfile; sample names field 1 and population names field 2
+
+for i in `ls *Samples.txt`; do
+POPULATION=`basename -s _Samples.txt $i`
+awk -v file="$POPULATION" '{print $1, file}' $i >> popfile.txt
+done
+
+
 ##Test model for clusters in Central Valley 1 and Central Valley 2/3
+
+dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfile.txt --pop-ids Central-Valley1 Central-Valley2and3 \
+--projections 58 178 --output Central-Valley1xCentral-Valley2and3.folded.fs
+
+##Infer DM
+
+dadi-cli InferDM --fs Central-Valley1xCentral-Valley2and3.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
+--ubounds 100 100 1 10 --output Central-Valley1xCentral-Valley2and3.split_mig.demo.params --optimizations 20 --nomisid --cpus 20
+
+
+
+
 
 model_creator.py --model CV1xCV2and3 --model-pop-file clusters clusterNamesCVs123.txt \
 --pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
