@@ -53,9 +53,26 @@ N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfile.txt | wc -l`
 N1HapCount=$((N1 * 2))
 N2HapCount=$((N2 * 2))
 dadi-cli InferDM --fs $PAIR.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
---ubounds 50 50 1 5 --output /optimizations/$PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
+--ubounds 50 50 5 5 --output /optimizations/$PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
 done
 done
+
+#For loop get best fit from optimizations
+for i in `ls *.opts.0`; do
+PREFIX=`basename -s .opts.0 $i`
+dadi-cli BestFit --input-prefix $PREFIX --lbounds 1e-3 1e-3 0 0 --ubounds 50 50 5 5
+done
+
+
+
+
+
+
+
+
+
+
+
 
 model_creator.py --model CV1xCV2and3 --model-pop-file clusters clusterNamesCVs123.txt \
 --pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
