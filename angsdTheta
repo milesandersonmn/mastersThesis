@@ -59,3 +59,15 @@ cat ../thetaHeader.txt LA1958.SI.logThetas > LA1958.header.SI.logThetas
 ##For loop
 
 #SI regions
+
+for i in `ls | grep -v header`; do
+POPULATION=`basename -s .SI.logThetas $i`
+cat ../thetaHeader.txt $i > $POPULATION.header.SI.logThetas
+done
+
+#Intergenic regions
+
+for i in `ls | grep -v header`; do
+POPULATION=`basename -s .intergenic.logThetas $i`
+cat ../thetaHeader.txt $i > $POPULATION.header.intergenic.logThetas
+done
