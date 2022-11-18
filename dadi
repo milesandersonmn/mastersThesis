@@ -65,39 +65,44 @@ done
 
 
 
+#########Perform dadi with only 1 population per cluster (clustered analysis does not converge)#############
 
 
+#Population name array
+populationArray=( $(awk '{print $2}' popfileSubset.txt | sort | uniq) )
 
+#For loop to generate pairwise FS
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfileSubset.txt --pop-ids $POP1 $POP2 \
+--projections $N1HapCount $N2HapCount --output $PAIR.folded.fs
+done
+done
 
+#For loop infer DM
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli InferDM --fs $PAIR.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
+--ubounds 50 50 5 5 --output /optimizations/$PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
+done
+done
 
-
-
-
-
-model_creator.py --model CV1xCV2and3 --model-pop-file clusters clusterNamesCVs123.txt \
---pop-ind-file Central-Valley1 Central-Valley1_Samples.txt \
---pop-ind-file Central-Valley2and3 Central-Valley2and3_Samples.txt
-
-##dadi test command for 1 pairwise comparison
-
-vcf_to_dadi.py --vcf ../IMa/intergenic.noOutgroup.reordered.recoded.vcf.gz --bed ../IMa/intergenic_region_goodDP_ChrOnly.bed \
---model-file out.model --modelname CV1xCV2and3 --out CV1xCV2and3.dadi
-
-##Python commands
-
-#Population ids
-
-pop_ids = ['Central-Valley1' , 'Central-Valley2and3']
-
-#Number of haploid samples per population
-
-ns = [58 , 178]
-
-#Folded spectrum
-
-folded_fs = dadi.Spectrum.from_data_dict(dd, pop_ids, ns, polarized = False)
-
-#Grid points
-
-pts_l = [max(ns)+100, max(ns)+110, max(ns)+120]
-
+#For loop get best fit from optimizations
+for i in `ls *.opts.0`; do
+PREFIX=`basename -s .opts.0 $i`
+dadi-cli BestFit --input-prefix $PREFIX --lbounds 1e-3 1e-3 0 0 --ubounds 50 50 5 5
+done
