@@ -143,3 +143,22 @@ dadi-cli StatDM --fs $PAIR.folded.fs --model split_mig \
 --bootstrapping-dir $PAIR.bootstraps/ --output ./$PAIR.split_mig.bestfit.demo.params.godambe.ci --nomisid
 done
 done
+
+######Calculate per site theta from results of optimizations######
+
+#sum of VCF contig lengths
+
+sequenceLength=$(awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}' ../bedFiles/intergenic_regions_goodDP.bed) 
+
+#Test command to print table of summary values with population pair in first column and per site theta in last column
+
+awk '/Converge/{getline; getline; print}' Central-Valley1xCoast.split_mig.demo.params.InferDM.bestfits | \
+awk 'BEGIN{FS=OFS="\t"}{print "PAIR" OFS $0}' | awk -v Length="$sequenceLength" 'BEGIN{FS=OFS="\t"}{print $0 OFS $7/Length}'
+
+#For loop to print table for all population pairs
+
+for i in `ls *bestfits`; do
+PAIR=`basename -s .split_mig.demo.params.InferDM.bestfits $i`
+awk '/Converge/{getline; getline; print}' $i | \
+awk -v PAIR="$PAIR" 'BEGIN{FS=OFS="\t"}{print PAIR OFS $0}' | awk -v Length="$sequenceLength" 'BEGIN{FS=OFS="\t"}{print $0 OFS $7/Length}'
+done
