@@ -163,6 +163,104 @@ awk '/Converge/{getline; getline; print}' $i | \
 awk -v PAIR="$PAIR" 'BEGIN{FS=OFS="\t"}{print PAIR OFS $0}' | awk -v Length="$sequenceLength" 'BEGIN{FS=OFS="\t"}{print $0 OFS $7/Length}'
 done
 
+################Run dadi between highest and lowest altitude populations in CV3 to compare intergenic and SI region statistics###################
+
+#Population name array
+populationArray=( $(awk '{print $2}' popfileAltitude.txt | sort | uniq) )
+
+#For loop to generate pairwise FS
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileAltitude.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileAltitude.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli GenerateFs --vcf ../intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfileAltitude.txt --pop-ids $POP1 $POP2 \
+--projections $N1HapCount $N2HapCount --output $PAIR.folded.fs
+done
+done
+
+#For loop infer DM
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileAltitude.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileAltitude.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli InferDM --fs $PAIR.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
+--ubounds 2 2 1 2 --output $PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
+done
+done
+
+#For loop get best fit from optimizations
+for i in `ls *.opts.0`; do
+PREFIX=`basename -s .opts.0 $i`
+dadi-cli BestFit --input-prefix $PREFIX --lbounds 1e-3 1e-3 0 0 --ubounds 50 50 5 5
+done
+
+#mkdir for bootstraps
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+mkdir $PAIR.bootstraps
+done
+done
+
+#Bootstrapping
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfileSubset.txt --pop-ids $POP1 $POP2 \
+--bootstrap 100 --chunk-size 1000000 --projections $N1HapCount $N2HapCount --output $PAIR.bootstraps/$PAIR.bootstrap
+done
+done
+
+#Estimate confidence intervals for demographic parameters
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+dadi-cli StatDM --fs $PAIR.folded.fs --model split_mig \
+--demo-popt $PAIR.split_mig.demo.params.InferDM.bestfits --grids 60 80 100 \
+--bootstrapping-dir $PAIR.bootstraps/ --output ./$PAIR.split_mig.bestfit.demo.params.godambe.ci --nomisid
+done
+done
+
+######Calculate per site theta from results of optimizations######
+
+#sum of VCF contig lengths
+
+sequenceLength=$(awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}' ../bedFiles/intergenic_regions_goodDP.bed) 
+
+#Test command to print table of summary values with population pair in first column and per site theta in last column
+
+awk '/Converge/{getline; getline; print}' Central-Valley1xCoast.split_mig.demo.params.InferDM.bestfits | \
+awk 'BEGIN{FS=OFS="\t"}{print "PAIR" OFS $0}' | awk -v Length="$sequenceLength" 'BEGIN{FS=OFS="\t"}{print $0 OFS $7/Length}'
+
+#For loop to print table for all population pairs
+
+for i in `ls *bestfits`; do
+PAIR=`basename -s .split_mig.demo.params.InferDM.bestfits $i`
+awk '/Converge/{getline; getline; print}' $i | \
+awk -v PAIR="$PAIR" 'BEGIN{FS=OFS="\t"}{print PAIR OFS $0}' | awk -v Length="$sequenceLength" 'BEGIN{FS=OFS="\t"}{print $0 OFS $7/Length}'
+done
+
+
 
 ################Run all dadi commands using all samples in coast and highland clusters (add '../' to file paths for use in test directory)#############
 
