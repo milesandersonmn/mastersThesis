@@ -71,3 +71,89 @@ S.chiCGN15532_1_ERR418097,\
 S.chiCGN15530_1_ERR418098,\
 Sper_LA1278_ERR418084,\
 Sper_LA1954_ERR418094 intergenicSNPs.noSingletons.recode.vcf > intergenicSNPs.noSingletons.noOutgroup.vcf
+
+####################Print region files from bed files in ANGSD format#############################
+
+##Integenic regions
+
+awk '{print $1":"$2"-"$3}' intergenic_regions_goodDP.bed > ../angsd/intergenic_regions_file.txt
+
+##SI regions
+
+awk '{print $1":"$2"-"$3}' captusSIgenes_150flanking.bed > ../angsd/SI_regions_file.txt
+
+####################Print population names list##################################
+
+awk '{print $2}' populationDefinitions.txt | sort | uniq > populationNames.txt
+
+####################Print bam file list for each population#######################
+
+for i in `cat populationNames.txt`; 
+do pop=`echo "$i"`; awk -v var="$pop" '$2~var {print "/data/proj2/popgen/chilense/capture/06_map_calling/"$1"_prop-map.bam";}' \
+populationDefinitions.txt > ${i}_accessions.txt ; 
+done
+
+####################Create ancestral fasta#######################################
+
+angsd -i /data/proj2/popgen/chilense/capture/06_map_calling/Spenn_LA0716_ERR418107_prop-map.bam -doFasta 1 -doCounts 1 -out ancestralState
+
+###################SFS calculation for loop for all populations in central valleys#######################
+
+for i in `cat ../populations/populationNamesCentralValleys.txt`; do
+POPULATION=`echo "$i"`;
+angsd -gl 1 -dosaf 1 -anc ancestralState.fa.gz -minMapQ 1 -minQ 20 -out $POPULATION \
+-ref ../../../S_chilense_reference_rename.fasta \
+-bam ../populations/${POPULATION}_accessions.txt -rf contigNames_ChrOnly_regions_file.txt -P 24;
+done
+
+##################Pairwise 2D SFS for all possible combinations using array loop#######################################
+
+##Populate array with population names
+
+mapfile -t populationArray < ../populations/populationNamesCentralValleys.txt
+
+##Calculate the 2dsfs prior pairwise for all combinations using array elements in nested for loop
+
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+realSFS ${populationArray[i]}.saf.idx ${populationArray[j]}.saf.idx -P 24 > 2DSFS/${populationArray[i]}.${populationArray[j]}.ml
+done;
+done 
+
+##"Prepare the fst for easy window analysis etc" 
+
+cd 2Didx
+
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+realSFS fst index ../${populationArray[i]}.saf.idx ../${populationArray[j]}.saf.idx -whichFst 1 -sfs \
+../2DSFS/${populationArray[i]}.${populationArray[j]}.ml \
+-fstout ${populationArray[i]}.${populationArray[j]}
+done;
+done 
+
+##################Run FST per region for all pairwise combinations####################
+cd 2Didx
+
+##Intergenic regions
+
+for j in `ls *.idx`; do
+PAIR=`basename -s .fst.idx $j`;
+for i in `cat ../intergenic_regions_file.txt`; do
+REGION=`echo "$i"`;
+realSFS fst stats ${j} -r $REGION | \
+grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> ../intergenicFST/${PAIR}.region.intergenic.FST;
+done
+done
+
+##SI regions
+
+for j in `ls *.idx`; do
+PAIR=`basename -s .fst.idx $j`;
+for i in `cat ../SI_gene_regions_file.txt`; do
+REGION=`echo "$i"`;
+realSFS fst stats ${j} -r $REGION | \
+grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> ../SIFST/${PAIR}.region.SI.FST;
+done
+done
+
