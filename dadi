@@ -81,8 +81,8 @@ N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
 N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
 N1HapCount=$((N1 * 2))
 N2HapCount=$((N2 * 2))
-dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfileSubset.txt --pop-ids $POP1 $POP2 \
---projections $N1HapCount $N2HapCount --output $PAIR.folded.fs
+dadi-cli GenerateFs --polarized --vcf ../intergenic.AA.recode.vcf.gz --pop-info popfileSubset.txt --pop-ids $POP1 $POP2 \
+--projections $N1HapCount $N2HapCount --output $PAIR.unfolded.fs
 done
 done
 
@@ -96,8 +96,8 @@ N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
 N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
 N1HapCount=$((N1 * 2))
 N2HapCount=$((N2 * 2))
-dadi-cli InferDM --fs $PAIR.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
---ubounds 2 2 1 2 --output /optimizations/$PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
+dadi-cli InferDM --fs $PAIR.unfolded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
+--ubounds 3 3 10 10 --output $PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
 done
 done
 
