@@ -1,70 +1,3 @@
-####################Create model file for pairwise dadi runs between clusters############################
-
-##Create popfile; sample names field 1 and population names field 2
-
-for i in `ls *Samples.txt`; do
-POPULATION=`basename -s _Samples.txt $i`
-awk -v file="$POPULATION" '{print $1, file}' $i >> popfile.txt
-done
-
-
-##Test model for clusters in Central Valley 1 and Central Valley 2/3
-
-dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfile.txt --pop-ids Central-Valley1 Central-Valley2and3 \
---projections 58 178 --output Central-Valley1xCentral-Valley2and3.folded.fs
-
-##Infer DM
-
-dadi-cli InferDM --fs Central-Valley1xCentral-Valley2and3.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
---ubounds 50 50 1 5 --output Central-Valley1xCentral-Valley2and3.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
-
-##Best fit
-
-dadi-cli BestFit --input-prefix Central-Valley1xCentral-Valley2and3.split_mig.demo.params.InferDM --lbounds 1e-3 1e-3 0 0 --ubounds 100 100 1 10
-
-##Create pairwise population automation
-
-#Population name array
-populationArray=( $(awk '{print $2}' popfile.txt | sort | uniq) )
-
-#For loop to generate pairwise FS
-for ((i = 0; i < ${#populationArray[@]}; i++)); do 
-for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
-POP1=`printf "${populationArray[i]}"`
-POP2=`printf "${populationArray[j]}"`
-PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
-N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfile.txt | wc -l`
-N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfile.txt | wc -l`
-N1HapCount=$((N1 * 2))
-N2HapCount=$((N2 * 2))
-dadi-cli GenerateFs --vcf intergenic.noOutgroup.reordered.recoded.vcf.gz --pop-info popfile.txt --pop-ids $POP1 $POP2 \
---projections $N1HapCount $N2HapCount --output $PAIR.folded.fs
-done
-done
-
-#For loop infer DM
-for ((i = 0; i < ${#populationArray[@]}; i++)); do 
-for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
-POP1=`printf "${populationArray[i]}"`
-POP2=`printf "${populationArray[j]}"`
-PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
-N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfile.txt | wc -l`
-N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfile.txt | wc -l`
-N1HapCount=$((N1 * 2))
-N2HapCount=$((N2 * 2))
-dadi-cli InferDM --fs $PAIR.folded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
---ubounds 50 50 5 5 --output /optimizations/$PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
-done
-done
-
-#For loop get best fit from optimizations
-for i in `ls *.opts.0`; do
-PREFIX=`basename -s .opts.0 $i`
-dadi-cli BestFit --input-prefix $PREFIX --lbounds 1e-3 1e-3 0 0 --ubounds 50 50 5 5
-done
-
-
-
 #########Perform dadi with only 1 population per cluster (clustered analysis does not converge)#############
 
 
@@ -86,6 +19,21 @@ dadi-cli GenerateFs --polarized --vcf ../intergenic.AA.recode.vcf.gz --pop-info 
 done
 done
 
+#For loop to generate pairwise FS SI genes
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli GenerateFs --polarized --vcf ../SI.AA.recode.vcf.gz --pop-info popfileSubset.txt --pop-ids $POP1 $POP2 \
+--projections $N1HapCount $N2HapCount --output $PAIR.SI.unfolded.fs
+done
+done
+
 #For loop infer DM
 for ((i = 0; i < ${#populationArray[@]}; i++)); do 
 for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
@@ -97,6 +45,21 @@ N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
 N1HapCount=$((N1 * 2))
 N2HapCount=$((N2 * 2))
 dadi-cli InferDM --fs $PAIR.unfolded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
+--ubounds 3 3 10 10 --output $PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
+done
+done
+
+#For loop infer DM SI genes
+for ((i = 0; i < ${#populationArray[@]}; i++)); do 
+for ((j = i + 1; j < ${#populationArray[@]}; j++)); do 
+POP1=`printf "${populationArray[i]}"`
+POP2=`printf "${populationArray[j]}"`
+PAIR=`printf "${populationArray[i]}x${populationArray[j]}"`
+N1=`awk -v pop1="$POP1" '$2~pop1 {print $0}' popfileSubset.txt | wc -l`
+N2=`awk -v pop2="$POP2" '$2~pop2 {print $0}' popfileSubset.txt | wc -l`
+N1HapCount=$((N1 * 2))
+N2HapCount=$((N2 * 2))
+dadi-cli InferDM --fs $PAIR.SI.unfolded.fs --model split_mig --lbounds 1e-3 1e-3 0 0 \
 --ubounds 3 3 10 10 --output $PAIR.split_mig.demo.params --optimizations 10 --nomisid --cpus 20
 done
 done
