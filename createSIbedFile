@@ -11,3 +11,7 @@ awk 'BEGIN{OFS="\t";}{if ($6 >= 0.85)print $1,$4,$5;}' assembly_hit_contigs.gff 
 #######Add 150 bp flanking region to bed regions to capture sequences picked up outside probe sequences##########
 
 awk -v OFS="\t" '{$2=$2-150;$3=$3+150; print $0;}' captusSIgenes.bed > captusSIgenes_150flanking.bed
+
+#######Create CDS bed file###########
+
+bedtools intersect -a captusSIgenes.bed -b S_chilense_reference_rename_annotation_v3.gff -wb | awk '{if ($6 == "CDS") print $4"\t"$7"\t"$8}' > SIgeneCDS.bed
