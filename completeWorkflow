@@ -95,6 +95,32 @@ S.chiCGN15530_1_ERR418098,\
 Sper_LA1278_ERR418084,\
 Sper_LA1954_ERR418094 SISNPs.noSingletons.recode.vcf > SISNPs.noSingletons.noOutgroup.vcf
 
+##Intergenic plink
+
+plink --vcf intergenicSNPs.noSingletons.noOutgroup.vcf --indep-pairwise 50 5 0.5 --const-fid --allow-extra-chr \
+--recode vcf --out pruned.intergenicSNPs.noSingletons.noOutgroup --set-missing-var-ids @:#
+
+## Edit VCF header to simplify sample names for visualization
+
+bcftools query -l pruned.intergenicSNPs.noSingletons.noOutgroup.vcf > sampleIDlist.txt
+
+#Edit txt in VIM
+
+%s/\(0_\)\(.*\)/\1\2\t\2/
+
+#Reheader in VCF
+
+bcftools reheader -s sampleIDlist.txt -o pruned.intergenicSNPs.noSingletons.noOutgroup.rename.vcf pruned.intergenicSNPs.noSingletons.noOutgroup.vcf
+
+##SI plink
+
+plink --vcf SISNPs.noSingletons.noOutgroup.vcf --indep-pairwise 50 5 0.5 --const-fid --allow-extra-chr \
+--recode vcf --out pruned.SISNPs.noSingletons.noOutgroup --set-missing-var-ids @:#
+
+#Reheader in VCF
+
+bcftools reheader -s sampleIDlist.txt -o pruned.SISNPs.noSingletons.noOutgroup.rename.vcf pruned.SISNPs.noSingletons.noOutgroup.vcf
+
 ####################Print region files from bed files in ANGSD format#############################
 
 ##Integenic regions
