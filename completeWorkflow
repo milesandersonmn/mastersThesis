@@ -72,6 +72,29 @@ S.chiCGN15530_1_ERR418098,\
 Sper_LA1278_ERR418084,\
 Sper_LA1954_ERR418094 intergenicSNPs.noSingletons.recode.vcf > intergenicSNPs.noSingletons.noOutgroup.vcf
 
+##Same filtering for SI genes
+
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.SIgenes.decomposedVariants.noIndels.recode.vcf.gz \
+--remove-indels --minQ 30 --minDP 10 --max-missing 0.98 --out SISNPs.noMAF --recode-INFO-all --recode
+
+
+bcftools view -s ^Spenn_LA0716_ERR418107,\
+S.chiCGN15532_1_ERR418097,\
+S.chiCGN15530_1_ERR418098,\
+Sper_LA1278_ERR418084,\
+Sper_LA1954_ERR418094 SISNPs.noMAF.recode.vcf > SISNPs.noMAF.noOutgroup.vcf
+
+##No singletons
+
+vcftools --gzvcf Schil_capture_variants_Chr1-12.reheader.filtered.SIgenes.decomposedVariants.noIndels.recode.vcf.gz --remove-indels \
+--minQ 30 --mac 2 --minDP 10 --max-missing 0.98 --out SISNPs.noSingletons --recode-INFO-all --recode
+
+bcftools view -s ^Spenn_LA0716_ERR418107,\
+S.chiCGN15532_1_ERR418097,\
+S.chiCGN15530_1_ERR418098,\
+Sper_LA1278_ERR418084,\
+Sper_LA1954_ERR418094 SISNPs.noSingletons.recode.vcf > SISNPs.noSingletons.noOutgroup.vcf
+
 ####################Print region files from bed files in ANGSD format#############################
 
 ##Integenic regions
