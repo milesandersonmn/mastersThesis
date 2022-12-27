@@ -63,3 +63,15 @@ str(pairwiseFST)
 summary(pairwiseFST)
 boxplot(pairwiseFST)
 boxplot(pairwiseFSTSI)
+
+library(vegan)
+library(ecodist)
+library(LandGenCourse)
+library(GeNetIt)
+library(dplyr)
+library(EcoGenetics)
+library(spdep)
+?mgram
+mantCor <- mgram(Dgen, Dgeo, breaks = c(0, 0.25, 0.5, 1.25, 2.5, 2.8, 4.5), nperm = 500)
+mantCor
+plot(mantCor)
