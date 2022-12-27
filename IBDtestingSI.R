@@ -6,7 +6,7 @@ library("magrittr")
 
 setwd("~/mastersThesis/")
 
-objSI2 <- read.genepop("intergenicSNPS.noOutgroup.rename.noOutliers.gen", ncode = 3)
+objSI <- read.genepop("SIFiles/pruned.SIgenesSNPs.noOutgroup.rename.gen", ncode = 3)
 
 popName <- as.data.frame(as.character(objSI@pop))
 popCoordinates <- cbind(popName, "X", "Y")
@@ -14,7 +14,8 @@ str(popCoordinates)
 
 popInfo <- as.data.frame(read.table(file = "selected_pops_genepopNames.txt", sep = "\t"))
 
-for (x in popCoordinates[,1]) {
+
+for (x in popCoordinates[1:158,1]) {
   
   spatialCoordinates <- popInfo[which(popInfo$V1==x),2:3]
   popCoordinates[which(popCoordinates==x),2:3] <- spatialCoordinates
@@ -27,7 +28,6 @@ objSI@other$xy <- as.matrix(unique(popCoordinates))
 
 objSISubset <- subset(objSI, objSI@pop!="LA4339_NO1")
 objSISubset2 <- subset(objSISubset, objSISubset@pop!="LA2880_N17")
-
 objSISubset2.smry <- summary(objSISubset2)
 
 plot(objSISubset2.smry$Hexp, objSISubset2.smry$Hobs, main = "Observed vs expected heterozygosity")
@@ -55,6 +55,9 @@ plot(DgeoSI, DgenSI, pch=20,cex=.5)
 image(dens, col=transp(myPal(300),.7), add=TRUE)
 abline(lm(DgenSI~DgeoSI))
 title("Isolation by distance plot")
+
+library(graph4lg)
+
 
 pairwiseFSTSI <- mat_pw_fst(objSISubset2)
 str(pairwiseFSTSI)
