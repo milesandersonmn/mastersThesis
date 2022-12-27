@@ -6,7 +6,7 @@ library("magrittr")
 
 setwd("~/mastersThesis/")
 
-obj2 <- read.genepop("intergenicSNPs.noMAF.noOutgroup.gen", ncode = 3)
+obj2 <- read.genepop("intergenicSNPs.noSingletons.noOutgroup.gen", ncode = 3)
 
 popName <- as.data.frame(as.character(obj2@pop))
 popCoordinates <- cbind(popName, "X", "Y")
@@ -14,7 +14,7 @@ str(popCoordinates)
 
 popInfo <- as.data.frame(read.table(file = "selected_pops_genepopNames.txt", sep = "\t"))
 
-for (x in popCoordinates[,1]) {
+for (x in popCoordinates[1:158,1]) {
   
   spatialCoordinates <- popInfo[which(popInfo$V1==x),2:3]
   popCoordinates[which(popCoordinates==x),2:3] <- spatialCoordinates
