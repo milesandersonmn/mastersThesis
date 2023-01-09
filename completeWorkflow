@@ -131,6 +131,10 @@ awk '{print $1":"$2"-"$3}' intergenic_regions_goodDP.bed > ../angsd/intergenic_r
 
 awk '{print $1":"$2"-"$3}' captusSIgenes_150flanking.bed > ../angsd/SI_regions_file.txt
 
+##CDS regions
+
+awk '{print $1":"$2"-"$3}' SIgeneCDS.bed > ../finalWorkflow/angsd/CDS_regions_file.txt
+
 ####################Print population names list##################################
 
 awk '{print $2}' populationDefinitions.txt | sort | uniq > populationNames.txt
@@ -206,3 +210,13 @@ grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> ../SIFS
 done
 done
 
+##CDS regions
+
+for j in `ls *.idx`; do
+PAIR=`basename -s .fst.idx $j`;
+for i in `cat ../CDS_regions_file.txt`; do
+REGION=`echo "$i"`;
+realSFS fst stats ${j} -r $REGION | \
+grep -o "[[:digit:]].[[:digit:]]*[[:space:]][[:digit:]].[[:digit:]]*" >> ../CDSFST/${PAIR}.region.CDS.FST;
+done
+done
