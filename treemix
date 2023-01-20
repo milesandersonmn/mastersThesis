@@ -1,0 +1,22 @@
+###LD pruning intergenic regions
+
+plink --vcf intergenicSNPs.noMAF.noOutgroup.vcf --indep-pairwise 50 5 0.5 --double-id --allow-extra-chr \
+--recode vcf --out pruned.intergenicSNPs.noMAF.noOutgroup --set-missing-var-ids @:#
+
+plink --vcf pruned.intergenicSNPs.noMAF.noOutgroup.vcf --make-bed --out pruned.intergenicSNPs.noMAF.noOutgroup --allow-extra-chr --double-id
+
+###Cluster file creation
+
+bcftools query -l pruned.intergenicSNPs.noMAF.noOutgroup.vcf | awk '{split($1,pop,"."); print $1"\t"$1"\t"pop[2]}' > sampleClustTemp.txt
+
+for i in `bcftools query -l pruned.intergenicSNPs.noMAF.noOutgroup.vcf`; do echo $i | cut -d '_' -f 1; done > popList.txt
+
+paste sampleClustTemp.txt popList.txt > intergenicSNPs.noMAF.noOutgroup.clust
+
+###Treemix input creation
+
+./vcf2treemix.sh pruned.intergenicSNPs.noMAF.noOutgroup.vcf.gz intergenicSNPs.noMAF.noOutgroup.clust 
+
+###Run treemix
+
+treemix -i pruned.intergenicSNPs.noMAF.noOutgroup.treemix.frq.gz -o test -root LA1960 -bootstrap -k 500 -noss
